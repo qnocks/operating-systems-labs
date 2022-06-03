@@ -1,0 +1,44 @@
+name: Build and Test
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build server
+        run: g++ server.cpp -o server
+
+      - name: Zero command line arguments
+        run: |
+          ./server
+          if [[ $? -eq 0 ]]; then echo 'Test failed'; exit 1; fi
+        continue-on-error: true
+      - name: Too many command line arguments
+        run: |
+          ./server 5000 5000
+          if [[ $? -eq 0 ]]; then echo 'Test failed'; exit 1; fi
+        continue-on-error: true
+      - name: Incorrect port #1
+        run: |
+          ./server 500
+          if [[ $? -eq 0 ]]; then echo 'Test failed'; exit 1; fi
+        continue-on-error: true
+      - name: Incorrect port #2
+        run: |
+          ./server 5000000
+          if [[ $? -eq 0 ]]; then echo 'Test failed'; exit 1; fi
+        continue-on-error: true
+      - name: Incorrect port #3
+        run: |
+          ./server something
+          if [[ $? -eq 0 ]]; then echo 'Test failed'; exit 1; fi
+        continue-on-error: true
+
+      - name: Build Loopback
+        run: g++ client_loopback.cpp -o client_loopback
+
+      - name: Test Loopback
+        run: |
+          ./server 2000 & sleep 3 | ./client_loopback 2000 & sleep 3
+          if [[ "${PIPESTATUS[0]}" -eq 0 ]]; then echo 'Test passed'; fi

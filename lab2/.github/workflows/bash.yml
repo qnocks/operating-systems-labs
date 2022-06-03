@@ -1,0 +1,21 @@
+name: Bash
+
+on:
+  push:
+    paths: 
+      - lab1.sh
+      - .github/workflows/bash.yml
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Test
+      shell: bash
+      run: |
+        wget -q https://github.com/markpolyak/datasets/raw/main/data/dns-tunneling.log.tar.bz2
+        tar -xjf dns-tunneling.log.tar.bz2
+        TERM=xterm-256color bash test.sh
